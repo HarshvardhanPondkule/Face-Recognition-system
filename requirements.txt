@@ -1,4 +1,4 @@
-opencv-python
+opencv-python-headless
 cmake
 pyyaml
 streamlit==1.22.0
