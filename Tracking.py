@@ -4,7 +4,7 @@ import face_recognition as frg
 import yaml 
 from utils import recognize, build_dataset
 # Path: code\app.py
-from streamlit_webrtc import webrtc_streamer, VideoTransformerBase, RTCConfiguration
+from streamlit_webrtc import webrtc_streamer, VideoTransformerBase, RTCConfiguration, WebRtcMode
 import av
 
 st.set_page_config(page_title="Face Recognition", page_icon="🧠", layout="wide")
@@ -99,7 +99,7 @@ elif choice == "Webcam":
 
     ctx = webrtc_streamer(
         key="face-recognition-webrtc",
-        mode="SENDRECV",
+        mode=WebRtcMode.SENDRECV,
         video_processor_factory=VideoProcessor,
         media_stream_constraints={"video": True, "audio": False},
         rtc_configuration=rtc_config,
