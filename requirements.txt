@@ -6,12 +6,8 @@ streamlit==1.22.0
 #Fork of face_recognition using prebuild dlib library instead
 face_recognition @ git+https://github.com/thetoby9944/face_recognition
 
-# For Gradio deployment
-gradio>=4.29.0
-
 # For Streamlit webcam (WebRTC) deployment
 streamlit-webrtc>=0.47.7
-mediapipe==0.8.9.1
 
 # WebRTC dependencies (pure pip)
 av>=10.0.0
