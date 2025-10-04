@@ -4,6 +4,8 @@ import face_recognition as frg
 import yaml 
 from utils import recognize, build_dataset
 # Path: code\app.py
+from streamlit_webrtc import webrtc_streamer, VideoTransformerBase, RTCConfiguration
+import av
 
 st.set_page_config(page_title="Face Recognition", page_icon="🧠", layout="wide")
 #Config
@@ -77,23 +79,36 @@ if choice == "Picture":
 elif choice == "Webcam":
     st.title("Face Recognition App")
     st.write(WEBCAM_PROMPT)
-    #Camera Settings
-    cam = cv2.VideoCapture(0)
-    cam.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-    cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-    FRAME_WINDOW = st.image([])
-    
-    while True:
-        ret, frame = cam.read()
-        if not ret:
-            st.error("Failed to capture frame from camera")
-            st.info("Please turn off the other app that is using the camera and restart app")
-            st.stop()
-        image, name, id = recognize(frame,TOLERANCE)
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        #Display name and ID of the person
-        
-        combined_label = 'Unknown' if id == 'Unknown' else f"{id}_{name.replace(' ', '_')}"
+    # WebRTC-based webcam (works in cloud over HTTPS)
+    class VideoProcessor(VideoTransformerBase):
+        def __init__(self):
+            self.tolerance = 0.5
+            self.last_label = "Unknown"
+
+        def recv(self, frame):
+            img = frame.to_ndarray(format="bgr24")
+            img_out, name, id = recognize(img, self.tolerance)
+            label = 'Unknown' if id == 'Unknown' else f"{id}_{name.replace(' ', '_')}"
+            self.last_label = label
+            # recognize() already draws boxes/labels. Ensure BGR for output frame
+            return av.VideoFrame.from_ndarray(img_out, format="bgr24")
+
+    rtc_config = RTCConfiguration({
+        "iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
+    })
+
+    ctx = webrtc_streamer(
+        key="face-recognition-webrtc",
+        mode="SENDRECV",
+        video_processor_factory=VideoProcessor,
+        media_stream_constraints={"video": True, "audio": False},
+        rtc_configuration=rtc_config,
+    )
+
+    # Keep tolerance in sync with processor and display label in sidebar
+    if ctx.video_processor:
+        ctx.video_processor.tolerance = TOLERANCE
+        combined_label = getattr(ctx.video_processor, "last_label", "Unknown")
         combined_container.markdown(
             f"""
             <div class=\"identity-box\">
@@ -103,7 +118,6 @@ elif choice == "Webcam":
             """,
             unsafe_allow_html=True,
         )
-        FRAME_WINDOW.image(image)
 
 with st.sidebar.form(key='my_form'):
     st.title("Developer Section")
