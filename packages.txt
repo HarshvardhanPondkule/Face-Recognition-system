@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-# Intentionally empty: avoid apt installs on Streamlit Cloud.
-# Use pip packages in requirements.txt (opencv-python, streamlit-webrtc, av, aiortc, mediapipe).
