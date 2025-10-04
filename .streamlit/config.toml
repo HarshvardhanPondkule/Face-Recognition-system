@@ -8,6 +8,5 @@ font = "sans serif"
 
 [server]
 runOnSave = true
+fileWatcherType = "poll"
 
-[client]
-showSidebarNavigation = true
